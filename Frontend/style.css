@@ -1,0 +1,77 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    /* full screen */
+    display: flex;
+    flex-direction: column;
+    /* stack header + content */
+    background-color: crimson
+}
+
+/* header */
+header {
+    text-align: center;
+    padding: 20px;
+    border-bottom: 2px solid #ccc;
+    background-color: whitesmoke;
+    outline: 5px solid #2563eb;
+}
+
+header h1 {
+    font-size: 64px;
+    margin: 0;
+}
+
+header p {
+    margin: 5px 0 0;
+    font-style: italic;
+}
+
+/* layout */
+div {
+    flex: 1;
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 40px;
+}
+
+
+
+/* stack buttons */
+div div {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* links as buttons */
+a {
+    display: block;
+    width: 260px;
+    /* pick a width that fits "budget projections" */
+    text-align: center;
+    padding: 15px 20px;
+    background: #2563eb;
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    box-sizing: border-box;
+    /* keeps sizing consistent */
+}
+
+a:hover {
+    background: #1e40af;
+}
+
+/* footer */
+footer {
+    text-align: center;
+    padding: 20px;
+    border-top: 2px solid #ccc;
+    background-color: whitesmoke;
+    outline: 5px solid #2563eb;
+}
