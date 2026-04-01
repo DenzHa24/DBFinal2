@@ -1,142 +1,206 @@
-//On inital load, prompt for DB information, save to current tab so that
-//refreshing does not force another login
-window.addEventListener("DOMContentLoaded", () => {
-    //Only prompt for credentials if we do not have them.
-    if (sessionStorage.getItem('credentialsReceived') === 'true') {
-        return;
-    } else {
-        //Make the popup appear and get the form
-        document.getElementById("dbModal").style.display = "flex";
-        const form = document.getElementById("dbForm");
-
-        //Form event listener
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            const dbCredentials = Object.fromEntries(new FormData(form));
-
-            try {
-                const res = await fetch("http://localhost:3000/api/connect-db", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(dbCredentials)
-                });
-
-                const data = await res.json();
-                console.log("Backend response:", data);
-
-                if (data.status === "success") {
-                    document.getElementById("dbModal").style.display = "none";
-
-                    //Set session storage to true so no relogging
-                    sessionStorage.setItem('credentialsReceived', 'true');
-                } else {
-                    alert("DB connection failed");
-                }
-
-            } catch (err) {
-                console.error(err);
-                alert("Server error");
-            }
-        });
-    }
-});
-
-
-//UNTESTED
 function createTable(data) {
-    const table = document.createElement("table");
+    const table = document.createElement('table');
 
-    if (!data || data.length === 0) return table;
+    if (!Array.isArray(data) || data.length === 0) {
+        return table;
+    }
 
-    // Get columns from first object
     const columns = Object.keys(data[0]);
 
-    // HEADER ROW
-    const headerRow = document.createElement("tr");
-
-    columns.forEach(col => {
-        const th = document.createElement("th");
-        th.textContent = col;
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    columns.forEach((column) => {
+        const th = document.createElement('th');
+        th.textContent = column;
         headerRow.appendChild(th);
     });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
 
-    table.appendChild(headerRow);
-
-    // DATA ROWS
-    data.forEach(rowObj => {
-        const tr = document.createElement("tr");
-
-        columns.forEach(col => {
-            const td = document.createElement("td");
-            td.textContent = rowObj[col];
+    const tbody = document.createElement('tbody');
+    data.forEach((row) => {
+        const tr = document.createElement('tr');
+        columns.forEach((column) => {
+            const td = document.createElement('td');
+            td.textContent = row[column];
             tr.appendChild(td);
         });
-
-        table.appendChild(tr);
+        tbody.appendChild(tr);
     });
+    table.appendChild(tbody);
 
     return table;
 }
 
+function showMessage(elementId, message, isError = false) {
+    const target = document.getElementById(elementId);
+    if (!target) {
+        return;
+    }
 
-//UNTESTED
-function checkTable() {
-    const form = document.getElementById("table-display");
+    target.textContent = message;
+    target.style.color = isError ? 'darkred' : 'darkgreen';
+}
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+async function postJson(url, payload) {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
 
-        const dbName = Object.fromEntries(new FormData(form));
+    const data = await response.json();
+    if (!response.ok || data.status === 'error') {
+        throw new Error(data.message || 'Request failed.');
+    }
+
+    return data;
+}
+
+function initDbModal() {
+    const modal = document.getElementById('dbModal');
+    const form = document.getElementById('dbForm');
+
+    if (!modal || !form) {
+        return;
+    }
+
+    if (sessionStorage.getItem('credentialsReceived') === 'true') {
+        modal.style.display = 'none';
+        return;
+    }
+
+    modal.style.display = 'flex';
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const credentials = Object.fromEntries(new FormData(form));
 
         try {
-            const res = await fetch("http://localhost:3000/api/getTable", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(dbName)
-            });
-
-            const data = await res.json();
-
-            if (data.status === "success") {
-
-                const tableData = data.data; // 👈 array of objects
-
-                const container = document.getElementById("table");
-                container.innerHTML = "";
-
-                container.appendChild(createTable(tableData));
-
-            } else {
-                alert("DB connection failed");
-            }
-
-        } catch (err) {
-            console.error(err);
-            alert("Server error");
+            await postJson('/api/connect-db', credentials);
+            modal.style.display = 'none';
+            sessionStorage.setItem('credentialsReceived', 'true');
+        } catch (error) {
+            alert(`DB connection failed: ${error.message}`);
         }
     });
 }
 
-function addSupplier() {
+function initTableDisplay() {
+    const form = document.getElementById('table-display');
+    if (!form) {
+        return;
+    }
 
-}
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
 
-function calculateExpenses() {
+        const formData = Object.fromEntries(new FormData(form));
 
-}
-
-function budgetProjection() {
-
+        try {
+            const data = await postJson('/api/getTable', formData);
+            const container = document.getElementById('table');
+            container.innerHTML = '';
+            container.appendChild(createTable(data.data));
+            showMessage('tableMessage', `Loaded ${data.rows} rows from ${formData.tableName}.`);
+        } catch (error) {
+            showMessage('tableMessage', error.message, true);
+        }
+    });
 }
 
 function addPhone() {
     const container = document.getElementById('extraPhones');
+    if (!container) {
+        return;
+    }
 
     const input = document.createElement('input');
     input.type = 'text';
-    input.name = 'phoneNumbers[]';
+    input.name = 'phoneNumbers';
     input.placeholder = 'Additional phone';
-
     container.appendChild(input);
 }
+
+function initSupplierForm() {
+    const form = document.getElementById('supplier-form');
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const fd = new FormData(form);
+        const payload = {
+            supplierName: fd.get('supplierName'),
+            email: fd.get('email'),
+            phoneNumbers: fd.getAll('phoneNumbers')
+        };
+
+        try {
+            const data = await postJson('/api/addSupplier', payload);
+            showMessage('supplierMessage', `${data.message} (ID ${data.supplierId})`);
+            form.reset();
+            document.getElementById('extraPhones').innerHTML = '';
+        } catch (error) {
+            showMessage('supplierMessage', error.message, true);
+        }
+    });
+}
+
+function initAnnualExpensesForm() {
+    const form = document.getElementById('annual-expenses-form');
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const payload = Object.fromEntries(new FormData(form));
+
+        try {
+            const data = await postJson('/api/annualExpenses', payload);
+            const container = document.getElementById('annualExpensesResult');
+            container.innerHTML = '';
+            container.appendChild(createTable(data.data));
+            showMessage('annualExpensesMessage', 'Annual expenses calculated successfully.');
+        } catch (error) {
+            showMessage('annualExpensesMessage', error.message, true);
+        }
+    });
+}
+
+function initBudgetProjectionForm() {
+    const form = document.getElementById('budget-projection-form');
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const payload = Object.fromEntries(new FormData(form));
+
+        try {
+            const data = await postJson('/api/budgetProjection', payload);
+            const container = document.getElementById('budgetProjectionResult');
+            container.innerHTML = '';
+            container.appendChild(createTable(data.data));
+            showMessage(
+                'budgetProjectionMessage',
+                `Using ${data.baselineYear} baseline expense of $${data.baselineExpense}.`
+            );
+        } catch (error) {
+            showMessage('budgetProjectionMessage', error.message, true);
+        }
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    initDbModal();
+    initTableDisplay();
+    initSupplierForm();
+    initAnnualExpensesForm();
+    initBudgetProjectionForm();
+});
