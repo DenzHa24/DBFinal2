@@ -25,7 +25,7 @@
     <p>"Buy, Sell, Repair"</p>
 </header>
 <body>
-    <form action="/budgetProjection" method="post">
+    <form id="budget-projection-form">
         <label for="numYears">Number of Years:</label>
         <input type="number" id="numYears" name="numYears" min="1" required>
 
@@ -33,6 +33,8 @@
         <input type="number" id="inflationRate" name="inflationRate" step="0.01" min="0" required>
 
         <button type="submit">Show Projection</button>
+        <p id="budgetProjectionMessage"></p>
+        <div id="budgetProjectionResult"></div>
     </form>
 </body>
 <footer>
