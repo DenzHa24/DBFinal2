@@ -7,13 +7,33 @@
     <link rel="stylesheet" href="/Frontend/style.css">
     <script src="/Frontend/scripts.js" defer></script>
     <title>Budget Projections</title>
+    <style>
+    form {
+        background: grey;
+        display: flex;
+        flex-direction: column;
+        width: 500px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    </style>
 </head>
 <header>
     <h1>M.U.C</h1>
     <p>"Buy, Sell, Repair"</p>
 </header>
 <body>
-    
+    <form action="/budgetProjection" method="post">
+        <label for="numYears">Number of Years:</label>
+        <input type="number" id="numYears" name="numYears" min="1" required>
+
+        <label for="inflationRate">Inflation Rate (%):</label>
+        <input type="number" id="inflationRate" name="inflationRate" step="0.01" min="0" required>
+
+        <button type="submit">Show Projection</button>
+    </form>
 </body>
 <footer>
     <p>Contact us:</p>
