@@ -1,21 +1,22 @@
-/*let userName = null;
-let password = null;
-let database = null;
+//On page load, prompt for access
 
-// SHOW POPUP WHEN PAGE LOADS
+console.log("SCRIPT LOADED");
+
 window.addEventListener("DOMContentLoaded", () => {
+
+    if (sessionStorage.getItem('credentialsReceived') === 'true') {
+        return;
+    }
+
     document.getElementById("dbModal").style.display = "flex";
 
     const form = document.getElementById("dbForm");
 
     form.addEventListener("submit", async (e) => {
-        e.preventDefault(); 
+        e.preventDefault();
 
         const dbCredentials = Object.fromEntries(new FormData(form));
 
-        console.log("Credentials:", dbCredentials);
-
-        
         try {
             const res = await fetch("http://localhost:3000/api/connect-db", {
                 method: "POST",
@@ -28,6 +29,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
             if (data.success) {
                 document.getElementById("dbModal").style.display = "none";
+
+                // ✔ store ONLY after success
+                sessionStorage.setItem('credentialsReceived', 'true');
             } else {
                 alert("DB connection failed");
             }
@@ -36,7 +40,6 @@ window.addEventListener("DOMContentLoaded", () => {
             console.error(err);
             alert("Server error");
         }
-            
     });
 });
 

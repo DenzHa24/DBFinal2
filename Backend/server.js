@@ -2,6 +2,10 @@ const express = require('express');
 const app = express();
 const port = 3000;
 const mysql = require('mysql2');
+app.use(express.json());
+const cors = require("cors");
+
+app.use(cors());
 
 //Open the server
 app.get('/', (req, res) => {
@@ -13,7 +17,7 @@ app.listen(port, () => {
 });
 
 
-
+/*
 //Open SQL
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -34,15 +38,17 @@ connection.query(
         console.log(results); // results contains rows
     }
 );
+\*/
 
 app.post("/api/connect-db", async (req, res) => {
     const { host, user, password, database } = req.body;
 
     try {
+        /*
         connection = await mysql.createConnection({ host, user, password, database });
         await connection.end();
-
-        res.json({ status: "success", message: "Connected to MySQL!" });
+        */
+        res.json({ success: true });
 
     } catch (err) {
         res.status(500).json({ status: "error", message: err.message });
@@ -53,4 +59,4 @@ app.post("/api/connect-db", async (req, res) => {
 
 
 // 3. Close the connection
-connection.end();
+//connection.end();
