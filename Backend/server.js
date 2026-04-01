@@ -14,7 +14,7 @@ app.listen(port, () => {
 
 
 
-/*Open SQL
+//Open SQL
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -35,6 +35,22 @@ connection.query(
     }
 );
 
+app.post("/api/connect-db", async (req, res) => {
+    const { host, user, password, database } = req.body;
+
+    try {
+        connection = await mysql.createConnection({ host, user, password, database });
+        await connection.end();
+
+        res.json({ status: "success", message: "Connected to MySQL!" });
+
+    } catch (err) {
+        res.status(500).json({ status: "error", message: err.message });
+    }
+});
+
+
+
+
 // 3. Close the connection
 connection.end();
-*/
