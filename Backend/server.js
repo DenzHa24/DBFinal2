@@ -39,15 +39,66 @@ connection.query(
     }
 );
 \*/
+app.post("/api/addNewSupplier", async (req, res) => {
+    const { table, values } = req.body;
+
+    try {
+
+        // Build SQL dynamically but safely
+        const columns = Object.keys(values);
+        const placeholders = columns.map(() => "?").join(", ");
+        const sql = `INSERT INTO \`${table}\` (${columns.join(", ")}) VALUES (${placeholders})`;
+
+        Connection.query(sql, Object.values(values), (err, result) => {
+            if (err) throw err;
+
+            res.json({
+                status: "success",
+                insertedId: result.insertId
+            });
+        });
+
+    } catch (err) {
+        res.status(500).json({ status: "error", message: err.message });
+    }
+});
+
+
+app.post("/api/getTable", async (req, res) => {
+    const { table } = req.body;
+
+    try {
+        const sql = `SELECT * FROM \`${table}\``;
+
+        Connection.query(sql, function (err, results, fields) {
+            if (err) throw err;
+
+            const rowCount = results.length;      // number of rows
+            const colCount = fields.length;       // number of columns
+            const colNames = fields.map(f => f.name);
+
+            res.json({
+                status: "success",
+                rows: rowCount,
+                columns: colCount,
+                columnNames: colNames,
+                data: results
+            });
+        });
+
+    } catch (err) {
+        res.status(500).json({ status: "error", message: err.message });
+    }
+});
 
 app.post("/api/connect-db", async (req, res) => {
     const { host, user, password, database } = req.body;
 
     try {
-        /*
+        // connect then close connection
         connection = await mysql.createConnection({ host, user, password, database });
         await connection.end();
-        */
+
         res.json({ status: "success", message: "Connected to MySQL!" });
 
     } catch (err) {
